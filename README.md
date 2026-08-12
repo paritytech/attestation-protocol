@@ -39,7 +39,7 @@ $ bun run deploy
 
 ### Testnets
 
-#### PaseoNextV2 AssetHub
+#### Paseo AssetHubNextV2
 
 Genesis `0x23e730eb1c6fecae09c917439a5038cb6122d0d48980e8b9bbf0ff56f94a2ca6`.
 
