@@ -1,0 +1,192 @@
+{
+  "address": "0x46fe8c29dece5a882be37a459c6e8ba1b73d3f20",
+  "abi": [
+    {
+      "type": "function",
+      "name": "getSchema",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct SchemaRecord",
+          "components": [
+            {
+              "name": "id",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "registerer",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "resolver",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "revocable",
+              "type": "bool",
+              "internalType": "bool"
+            },
+            {
+              "name": "unique",
+              "type": "bool",
+              "internalType": "bool"
+            },
+            {
+              "name": "schema",
+              "type": "string",
+              "internalType": "string"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "register",
+      "inputs": [
+        {
+          "name": "schema",
+          "type": "string",
+          "internalType": "string"
+        },
+        {
+          "name": "revocable",
+          "type": "bool",
+          "internalType": "bool"
+        },
+        {
+          "name": "unique",
+          "type": "bool",
+          "internalType": "bool"
+        },
+        {
+          "name": "resolver",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "schemaCount",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "version",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "string",
+          "internalType": "string"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "event",
+      "name": "Registered",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "uint256",
+          "indexed": true,
+          "internalType": "uint256"
+        },
+        {
+          "name": "registerer",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "schema",
+          "type": "tuple",
+          "indexed": false,
+          "internalType": "struct SchemaRecord",
+          "components": [
+            {
+              "name": "id",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "registerer",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "resolver",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "revocable",
+              "type": "bool",
+              "internalType": "bool"
+            },
+            {
+              "name": "unique",
+              "type": "bool",
+              "internalType": "bool"
+            },
+            {
+              "name": "schema",
+              "type": "string",
+              "internalType": "string"
+            }
+          ]
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "error",
+      "name": "SchemaRegistry__EmptySchema",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "SchemaRegistry__SchemaNotFound",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ]
+    }
+  ],
+  "args": [],
+  "salt": "0x7496ca7f69dc52408b2c853fa89a4dd0233bcd348f6bb8af1bf0e538d74b820d",
+  "transactionHash": "0x8f7b84573bfd21aa4ba5df477c3e58694ed8eae3cabf834a9c86bca07c0c9f19"
+}

@@ -8,21 +8,12 @@ export type NetworkConfig = {
 };
 
 export const GenesisHashToNetworkConfig: Record<string, NetworkConfig> = {
-  "0xd6eec26135305a8ad257a20d003357284c8aa03d0bdb2b357ab0a22371e11ef2": {
-    name: "paseo-v1",
-    rpcEndpoints: [
-      "wss://sys.ibp.network/asset-hub-paseo",
-      "wss://asset-hub-paseo.dotters.network",
-      "wss://asset-hub-paseo-rpc.dwellir.com",
-      "wss://paseo-asset-hub-rpc.polkadot.io",
-    ],
-  },
-  "0x173cea9df45656cf612c8b8ece56e04e9a693c69cfaac47d3628dae735067af8": {
-    name: "paseo-v2",
+  "0x23e730eb1c6fecae09c917439a5038cb6122d0d48980e8b9bbf0ff56f94a2ca6": {
+    name: "paseonextv2",
     rpcEndpoints: ["wss://paseo-asset-hub-next-rpc.polkadot.io"],
   },
-  "0xf388dc6d6cdf6fb77eac3c4a91f31bc0c8642b142f1a757512ab7849f9f70660": {
-    name: "summit",
-    rpcEndpoints: ["wss://summit-asset-hub-rpc.polkadot.io"],
+  "0x4d11c803cc6921429e3876638977ad006ea1bba8cd3976a0bca2f164e7026210": {
+    name: "previewnet",
+    rpcEndpoints: ["wss://previewnet.substrate.dev/asset-hub"],
   },
 };

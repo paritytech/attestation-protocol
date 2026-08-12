@@ -2,9 +2,10 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { Keccak256 } from "@polkadot-api/substrate-bindings";
 import chalk from "chalk";
 import ora from "ora";
-import { Binary } from "polkadot-api";
+import { Binary, FixedSizeBinary } from "polkadot-api";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
 
 import { connect, getSigner, isAccountMapped, waitBestBlock } from "./lib.ts";
@@ -13,6 +14,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "../..");
 const OUT_DIR = path.resolve(__dirname, "../out");
 const DEPLOYMENTS_DIR = path.resolve(REPO_ROOT, "deployments");
+
+// CREATE2 salt. Part of the contract address, so changing it moves every
+// deployment to a new address.
+const SALT_SEED = "attestation-protocol.v1";
+const SALT = FixedSizeBinary.fromBytes(
+  Keccak256(new TextEncoder().encode(SALT_SEED)),
+);
 
 type Artifact = { abi: unknown[]; bytecode: { object: string } };
 
@@ -33,6 +41,7 @@ type Deployment = {
   address: string;
   abi: unknown[];
   args: string[];
+  salt: string;
   transactionHash: string;
 };
 
@@ -68,7 +77,7 @@ async function deploy(
       storage_deposit_limit: 1_000_000_000_000n,
       code: Binary.fromHex(bytecodeHex),
       data: Binary.fromHex("0x"),
-      salt: undefined,
+      salt: SALT,
     });
 
     const event = await waitBestBlock(tx, signer, contractName, (status) => {
@@ -146,6 +155,7 @@ async function main() {
       address: registry.address,
       abi: registryArtifact.abi,
       args: [],
+      salt: SALT.asHex(),
       transactionHash: registry.txHash,
     });
 
@@ -161,12 +171,18 @@ async function main() {
       "AttestationService",
       serviceBytecode,
     );
-    const dir = writeDeployment(network.name, genesisHash, "AttestationService", {
-      address: service.address,
-      abi: serviceArtifact.abi,
-      args: [registry.address],
-      transactionHash: service.txHash,
-    });
+    const dir = writeDeployment(
+      network.name,
+      genesisHash,
+      "AttestationService",
+      {
+        address: service.address,
+        abi: serviceArtifact.abi,
+        args: [registry.address],
+        salt: SALT.asHex(),
+        transactionHash: service.txHash,
+      },
+    );
 
     console.log();
     console.log(
