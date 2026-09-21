@@ -11,65 +11,39 @@ A permissionless protocol for creating, revoking, and verifying attestations. Us
 
 ## Deploy
 
-Using npm
+Contracts are deployed through the CREATE3 factory the dotNS contracts use, so an address depends on the
+factory and a salt only: the same on every network, the same again after a chain reset, and reachable
+from any funded account. Deploying is idempotent. A contract already at its address is adopted, so the
+command below can be rerun after a testnet wipe, or by [paritytech/autodeployer](https://github.com/paritytech/autodeployer),
+and only puts back what is missing.
 
-```bash
-$ npm run deploy
-```
-
-Using yarn
-
-```bash
-$ yarn run deploy
-```
-
-Using pnpm
-
-```bash
-$ pnpm run deploy
-```
-
-Using bun
+Pick the network by its Asset Hub genesis hash and sign with a funded mnemonic (see
+[evm/.env.example](evm/.env.example)), then:
 
 ```bash
 $ bun run deploy
 ```
 
+`DRY_RUN=true` prints the addresses the salts resolve to without deploying. The `Deploy` workflow does the
+same from GitHub Actions for a chosen network, signing with the `DEPLOYER_MNEMONIC` secret of the `deploy`
+environment.
+
+A contract's salt carries its version from `VERSIONS` in [evm/scripts/deploy.ts](evm/scripts/deploy.ts).
+Bump it when a change must land on a fresh address; rebuilding the same version adopts the existing
+deployment.
+
 ## Deployments
 
-### Testnets
-
-#### Paseo AssetHubNextV2
-
-Genesis `0x23e730eb1c6fecae09c917439a5038cb6122d0d48980e8b9bbf0ff56f94a2ca6`.
-
-Version 0.1.0:
+Version 1.0.0, deployed through the CREATE3 factory `0x8533c79E058c5a6489CAFeCA86dc600E029D75f5` on
+Paseo AssetHubNextV2 and Previewnet AssetHub alike. Records with the ABI live in [deployments/](deployments/).
 
 - **SchemaRegistry**:
-  - Contract: `0x46fe8c29dece5a882be37a459c6e8ba1b73d3f20`
+  - Contract: `0x90e2a80f6c59C2e1cbd0Be50f60bA56bae4ADE97`
   - Deployment and ABI: [SchemaRegistry.sol](evm/contracts/SchemaRegistry.sol)
 - **AttestationService**:
-  - Contract: `0x36e63233695675fd5b1f957da746602bd234fe19`
-  - Deployment and ABI: [AttestationService.sol](evm/contracts/AttestationService.sol)
-
-#### Previewnet AssetHub
-
-Genesis `0x4d11c803cc6921429e3876638977ad006ea1bba8cd3976a0bca2f164e7026210`.
-
-Version 0.1.0:
-
-- **SchemaRegistry**:
-  - Contract: `0x46fe8c29dece5a882be37a459c6e8ba1b73d3f20`
-  - Deployment and ABI: [SchemaRegistry.sol](evm/contracts/SchemaRegistry.sol)
-- **AttestationService**:
-  - Contract: `0x36e63233695675fd5b1f957da746602bd234fe19`
+  - Contract: `0xA722702956694BFF0Ad6689df0505C3e357Bf0F1`
   - Deployment and ABI: [AttestationService.sol](evm/contracts/AttestationService.sol)
 
 ## License
 
 Licensed under the [MIT License](LICENSE).
-
-## Security
-
-This is reference and proof-of-concept code. It has not been independently audited. Please follow
-the [Parity security policy](https://github.com/paritytech/.github/blob/main/SECURITY.md) for reporting vulnerabilities.

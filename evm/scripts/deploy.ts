@@ -2,12 +2,11 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { Keccak256 } from "@polkadot-api/substrate-bindings";
 import chalk from "chalk";
 import ora from "ora";
-import { Binary, FixedSizeBinary } from "polkadot-api";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
 
+import { deployCreate3 } from "./create3.ts";
 import { connect, getSigner, isAccountMapped, waitBestBlock } from "./lib.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -15,12 +14,15 @@ const REPO_ROOT = path.resolve(__dirname, "../..");
 const OUT_DIR = path.resolve(__dirname, "../out");
 const DEPLOYMENTS_DIR = path.resolve(REPO_ROOT, "deployments");
 
-// CREATE2 salt. Part of the contract address, so changing it moves every
-// deployment to a new address.
-const SALT_SEED = "attestation-protocol.v1";
-const SALT = FixedSizeBinary.fromBytes(
-  Keccak256(new TextEncoder().encode(SALT_SEED)),
-);
+/**
+ * Part of each contract's CREATE3 salt, so part of its address. Bump it when a
+ * contract changes in a way that must land on a fresh address; a rebuild of the
+ * same version adopts the existing deployment instead.
+ */
+const VERSIONS = {
+  SchemaRegistry: "1.0.0",
+  AttestationService: "1.0.0",
+} as const;
 
 type Artifact = { abi: unknown[]; bytecode: { object: string } };
 
@@ -39,13 +41,13 @@ function loadArtifact(contractName: string): Artifact {
 
 type Deployment = {
   address: string;
+  version: string;
+  salt: string;
   abi: unknown[];
   args: string[];
-  salt: string;
-  transactionHash: string;
 };
 
-// One directory per network, one file per contract — plus a `.genesisHash`
+// One directory per network, one file per contract, plus a `.genesisHash`
 // marker, mirroring hardhat-deploy's `deployments/<network>/`.
 function writeDeployment(
   networkName: string,
@@ -66,39 +68,34 @@ function writeDeployment(
 async function deploy(
   api: any,
   signer: any,
-  contractName: string,
-  bytecodeHex: string,
-): Promise<{ address: string; txHash: string }> {
-  const spinner = ora(`Deploying ${chalk.bold(contractName)}`).start();
+  factory: `0x${string}`,
+  contractName: keyof typeof VERSIONS,
+  initCode: string,
+) {
+  const version = VERSIONS[contractName];
+  const spinner = ora(`${chalk.bold(contractName)} ${version}`).start();
   try {
-    const tx = api.tx.Revive.instantiate_with_code({
-      value: 0n,
-      weight_limit: { ref_time: 10_000_000_000n, proof_size: 1_000_000n },
-      storage_deposit_limit: 1_000_000_000_000n,
-      code: Binary.fromHex(bytecodeHex),
-      data: Binary.fromHex("0x"),
-      salt: SALT,
+    const result = await deployCreate3(api, signer, {
+      name: contractName,
+      version,
+      initCode,
+      factory,
+      onStatus: (status) => {
+        spinner.text = `${chalk.bold(contractName)} ${version} ${chalk.dim(`(${status})`)}`;
+      },
     });
-
-    const event = await waitBestBlock(tx, signer, contractName, (status) => {
-      spinner.text = `Deploying ${chalk.bold(contractName)} ${chalk.dim(`(${status})`)}`;
-    });
-
-    const instantiated = (event.events ?? []).find(
-      (e: any) => e.type === "Revive" && e.value?.type === "Instantiated",
-    );
-    const contract = instantiated?.value?.value?.contract;
-    const address =
-      contract && typeof contract === "object" && "asHex" in contract
-        ? contract.asHex()
-        : String(contract);
-
+    const note =
+      result.status === "adopted"
+        ? "already deployed"
+        : result.status === "dry-run"
+          ? "dry run, not deployed"
+          : "deployed";
     spinner.succeed(
-      `${chalk.bold(contractName)} ${chalk.dim("→")} ${chalk.green(address)}`,
+      `${chalk.bold(contractName)} ${version} ${chalk.dim("→")} ${chalk.green(result.address)} ${chalk.dim(`(${note})`)}`,
     );
-    return { address, txHash: event.txHash as string };
+    return result;
   } catch (err) {
-    spinner.fail(`${chalk.bold(contractName)} deployment failed`);
+    spinner.fail(`${chalk.bold(contractName)} ${version} failed`);
     throw err;
   }
 }
@@ -113,7 +110,10 @@ async function mapAccount(
     spinner.succeed("Account already mapped");
     return;
   }
-
+  if (process.env.DRY_RUN === "true") {
+    spinner.succeed("Account not mapped (dry run, left as is)");
+    return;
+  }
   spinner.text = "Mapping account to EVM address";
   try {
     const tx = api.tx.Revive.map_account();
@@ -138,6 +138,7 @@ async function main() {
   console.log();
   console.log(`  ${chalk.dim("Network ")} ${chalk.bold(network.name)}`);
   console.log(`  ${chalk.dim("RPC     ")} ${network.rpcEndpoints[0]}`);
+  console.log(`  ${chalk.dim("Factory ")} ${network.create3Factory}`);
   console.log(`  ${chalk.dim("Deployer")} ${address}`);
   console.log();
 
@@ -148,39 +149,41 @@ async function main() {
     const registry = await deploy(
       api,
       signer,
+      network.create3Factory,
       "SchemaRegistry",
       registryArtifact.bytecode.object,
     );
-    writeDeployment(network.name, genesisHash, "SchemaRegistry", {
-      address: registry.address,
-      abi: registryArtifact.abi,
-      args: [],
-      salt: SALT.asHex(),
-      transactionHash: registry.txHash,
-    });
 
     const serviceArtifact = loadArtifact("AttestationService");
     const constructorArgs = encodeAbiParameters(parseAbiParameters("address"), [
-      registry.address as `0x${string}`,
+      registry.address,
     ]);
-    const serviceBytecode =
-      serviceArtifact.bytecode.object + constructorArgs.replace(/^0x/, "");
     const service = await deploy(
       api,
       signer,
+      network.create3Factory,
       "AttestationService",
-      serviceBytecode,
+      serviceArtifact.bytecode.object + constructorArgs.replace(/^0x/, ""),
     );
+
+    // The records hold salt-derived addresses, so a dry run writes them too.
+    writeDeployment(network.name, genesisHash, "SchemaRegistry", {
+      address: registry.address,
+      version: VERSIONS.SchemaRegistry,
+      salt: registry.salt,
+      abi: registryArtifact.abi,
+      args: [],
+    });
     const dir = writeDeployment(
       network.name,
       genesisHash,
       "AttestationService",
       {
         address: service.address,
+        version: VERSIONS.AttestationService,
+        salt: service.salt,
         abi: serviceArtifact.abi,
         args: [registry.address],
-        salt: SALT.asHex(),
-        transactionHash: service.txHash,
       },
     );
 
