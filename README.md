@@ -41,28 +41,28 @@ $ bun run deploy
 
 #### Paseo AssetHubNextV2
 
-Genesis `0x23e730eb1c6fecae09c917439a5038cb6122d0d48980e8b9bbf0ff56f94a2ca6`.
+Genesis `0x4349b00e54897e21196fd331015fc5be0f14e118beb0375ed2bb1793737bb57a`.
 
-Version 0.1.0:
+Version 1.0.0:
 
 - **SchemaRegistry**:
-  - Contract: `0x46fe8c29dece5a882be37a459c6e8ba1b73d3f20`
+  - Contract: `0x90e2a80f6c59C2e1cbd0Be50f60bA56bae4ADE97`
   - Deployment and ABI: [SchemaRegistry.sol](evm/contracts/SchemaRegistry.sol)
 - **AttestationService**:
-  - Contract: `0x36e63233695675fd5b1f957da746602bd234fe19`
+  - Contract: `0xA722702956694BFF0Ad6689df0505C3e357Bf0F1`
   - Deployment and ABI: [AttestationService.sol](evm/contracts/AttestationService.sol)
 
 #### Previewnet AssetHub
 
-Genesis `0x4d11c803cc6921429e3876638977ad006ea1bba8cd3976a0bca2f164e7026210`.
+Genesis `0xc27c8bf3f13f96dc2130cd2b0a3debe57618fd02521ecc1902bd7dd4ed83d2fe`.
 
-Version 0.1.0:
+Version 1.0.0:
 
 - **SchemaRegistry**:
-  - Contract: `0x46fe8c29dece5a882be37a459c6e8ba1b73d3f20`
+  - Contract: `0x90e2a80f6c59C2e1cbd0Be50f60bA56bae4ADE97`
   - Deployment and ABI: [SchemaRegistry.sol](evm/contracts/SchemaRegistry.sol)
 - **AttestationService**:
-  - Contract: `0x36e63233695675fd5b1f957da746602bd234fe19`
+  - Contract: `0xA722702956694BFF0Ad6689df0505C3e357Bf0F1`
   - Deployment and ABI: [AttestationService.sol](evm/contracts/AttestationService.sol)
 
 ## License

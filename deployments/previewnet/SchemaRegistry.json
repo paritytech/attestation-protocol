@@ -1,5 +1,7 @@
 {
-  "address": "0x46fe8c29dece5a882be37a459c6e8ba1b73d3f20",
+  "address": "0x90e2a80f6c59C2e1cbd0Be50f60bA56bae4ADE97",
+  "version": "1.0.0",
+  "salt": "0x8f0b748441da61c73c3902c896006e388bfd9791d1bd9cfc617683286be9c621",
   "abi": [
     {
       "type": "function",
@@ -186,7 +188,5 @@
       ]
     }
   ],
-  "args": [],
-  "salt": "0x7496ca7f69dc52408b2c853fa89a4dd0233bcd348f6bb8af1bf0e538d74b820d",
-  "transactionHash": "0x334b2f2d3064bf7a601c4b7f616e7024cb2fc91acad3ad5c7a79af01569774f9"
+  "args": []
 }

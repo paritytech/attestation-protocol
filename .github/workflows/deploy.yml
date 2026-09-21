@@ -1,0 +1,38 @@
+name: Deploy
+
+# Puts SchemaRegistry and AttestationService on a network, or confirms they are
+# there. Addresses are CREATE3-derived, so a rerun after a chain reset lands
+# them where they were. Run by hand, or by paritytech/autodeployer after a wipe.
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: Network to deploy to
+        type: choice
+        required: true
+        default: preview
+        options: [paseo-next-v2, preview]
+
+concurrency:
+  group: deploy-${{ inputs.network }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: deploy
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: forge build
+        working-directory: evm
+      - name: Resolve the genesis hash
+        run: |
+          echo "GENESIS_HASH=$(bun -e 'import { NetworkIdToGenesisHash } from "./evm/scripts/network.ts"; console.log(NetworkIdToGenesisHash[process.argv[1]])' "${{ inputs.network }}")" >> "$GITHUB_ENV"
+      - run: bun run deploy
+        working-directory: evm
+        env:
+          MNEMONIC: ${{ secrets.DEPLOYER_MNEMONIC }}
